@@ -1,0 +1,47 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+
+model TokenDetails {
+  id                String    @id @default(cuid()) @unique
+  tokenName         String
+  tokenSymbol       String
+  address String
+  totalTotalSupply  Int
+  totalClaimedToken Int       @default(0)
+  tokens            Token[]
+  merkleTreeAddress String
+  createdAt         DateTime  @default(now())
+  event             Event?    @relation("EventToTokenDetails")
+}
+
+model Token {
+  id              String    @id @default(cuid()) @unique
+  qrString        String
+  tokenDetailsId  String
+  tokenDetails    TokenDetails @relation(fields: [tokenDetailsId], references: [id])
+  claimed         Boolean   @default(false)
+  claimedBy       String?
+  claimedAt       DateTime?
+}
+
+model Event {
+  id               String        @id @default(cuid()) @unique
+  eventName        String
+  eventDescription String?
+  eventDate        DateTime?
+  tokenDetailsId   String?       @unique
+  tokenDetails     TokenDetails? @relation("EventToTokenDetails", fields: [tokenDetailsId], references: [id])
+}
