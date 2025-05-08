@@ -1,24 +1,39 @@
-import { v4 as uuidv4 } from "uuid";
 import prisma from "@/lib/utils";
-
-import { HeliusClient } from "@helius-labs/helius-sdk";
-interface tokenData {
-  tokenName: string;
-  tokenSymbol: string;
-  address: string;
-  tokenAmount: number;
-  eventRegistration?: boolean;
-  eventName?: string;
-  eventDate?: string;
-  eventDescription?: string;
-}
+import { tokenData } from "@/lib/types";
+import { mintTokenToMerkleAddress } from "./mintTokenToMerkleAddress";
+import { createUmiAddress } from "./createUmiAddress";
+import bs58 from "bs58";
 
 export async function createNewToken(tokenData: tokenData) {
+  const tokenAddedToDB = await addToDataBase(tokenData);
+  const { umi, merkleTree } = await createUmiAddress();
+  await prisma.tokenDetails.update({
+    where: { id: tokenAddedToDB.id },
+    data: {
+      merkleTreeAddress: merkleTree.publicKey.toString(),
+      merkleTreeSecretKey: bs58.encode(merkleTree.secretKey),
+    },
+  });
+
+  await mintTokenToMerkleAddress(
+    tokenData.tokenAmount,
+    merkleTree.publicKey.toString(),
+    tokenData.address,
+    tokenData.tokenName,
+    umi
+  );
+  await prisma.tokenDetails.update({
+    where: { id: tokenAddedToDB.id },
+    data: { minted: true },
+  });
+}
+
+async function addToDataBase(tokenData: tokenData) {
   try {
     const data: any = {
       tokenName: tokenData.tokenName,
       tokenSymbol: tokenData.tokenSymbol,
-      totalTotalSupply: tokenData.tokenAmount,
+      totalSupply: tokenData.tokenAmount,
       totalClaimedToken: 0,
     };
 
@@ -36,14 +51,6 @@ export async function createNewToken(tokenData: tokenData) {
       data,
     });
 
-    const tokensData = Array.from({ length: tokenData.tokenAmount }).map(
-      () => ({
-        tokenDetailsId: tokenDetails.id,
-        qrString: uuidv4(),
-      })
-    );
-
-    await prisma.token.createMany({ data: tokensData });
     return tokenDetails;
   } catch (error) {
     console.error("Error creating token:", error);

@@ -19,10 +19,12 @@ model TokenDetails {
   tokenName         String
   tokenSymbol       String
   address String
-  totalTotalSupply  Int
+  totalSupply  Int
   totalClaimedToken Int       @default(0)
   tokens            Token[]
-  merkleTreeAddress String
+  merkleTreeAddress String?
+  merkleTreeSecretKey String?
+  minted            Boolean @default(false)
   createdAt         DateTime  @default(now())
   event             Event?    @relation("EventToTokenDetails")
 }
