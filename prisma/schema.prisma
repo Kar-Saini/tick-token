@@ -13,34 +13,34 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
 model TokenDetails {
-  id                String    @id @default(cuid()) @unique
-  tokenName         String
-  tokenSymbol       String
-  address String
-  totalSupply  Int
-  totalClaimedToken Int       @default(0)
-  tokens            Token[]
-  merkleTreeAddress String?
+  id                  String   @id @unique @default(cuid())
+  tokenName           String
+  tokenSymbol         String
+  ownerAddress             String
+  mintingWalletAddress String
+  totalSupply         Int
+  totalClaimedToken   Int      @default(0)
+  tokens              Token[]
+  merkleTreeAddress   String?
   merkleTreeSecretKey String?
-  minted            Boolean @default(false)
-  createdAt         DateTime  @default(now())
-  event             Event?    @relation("EventToTokenDetails")
+  qrString            String?
+  minted              Boolean  @default(false)
+  createdAt           DateTime @default(now())
+  event               Event?   @relation("EventToTokenDetails")
 }
 
 model Token {
-  id              String    @id @default(cuid()) @unique
-  qrString        String
-  tokenDetailsId  String
-  tokenDetails    TokenDetails @relation(fields: [tokenDetailsId], references: [id])
-  claimed         Boolean   @default(false)
-  claimedBy       String?
-  claimedAt       DateTime?
+  id             String       @id @unique @default(cuid())
+  tokenDetailsId String
+  tokenDetails   TokenDetails @relation(fields: [tokenDetailsId], references: [id])
+  claimed        Boolean      @default(false)
+  claimedBy      String?
+  claimedAt      DateTime?
 }
 
 model Event {
-  id               String        @id @default(cuid()) @unique
+  id               String        @id @unique @default(cuid())
   eventName        String
   eventDescription String?
   eventDate        DateTime?

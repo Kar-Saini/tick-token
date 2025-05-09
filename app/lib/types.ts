@@ -1,7 +1,8 @@
 export interface tokenData {
   tokenName: string;
   tokenSymbol: string;
-  address: string;
+  ownerAddress: string;
+  mintingWalletAddress: string;
   tokenAmount: number;
   eventRegistration?: boolean;
   eventName?: string;

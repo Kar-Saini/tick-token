@@ -1,4 +1,6 @@
-import prisma from "@/lib/utils";
+"use server";
+
+import prisma from "@/app/lib/utils";
 
 export async function getTokenDetail(id: string) {
   try {
