@@ -8,7 +8,11 @@ export default function QRCodeDisplay({ tokenId }: { tokenId: string }) {
     <div className="flex flex-col items-center  space-y-2 p-2 border rounded-lg ">
       <h3 className="font-medium">QR Code : Claim Token</h3>
       <div className="bg-white rounded-lg">
-        <QRCodeSVG value={`/claim/${tokenId}`} size={256} level="M" />
+        <QRCodeSVG
+          value={`${process.env.BASE_URL}/claim/${tokenId}`}
+          size={256}
+          level="M"
+        />
       </div>
 
       <p className="text-xs text-center text-gray-500 max-w-[200px]">
