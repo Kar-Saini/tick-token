@@ -11,9 +11,8 @@ import bs58 from "bs58";
 import { none } from "@metaplex-foundation/umi";
 import QRCode from "qrcode";
 
-const SECRET_KEY =
-  "3oTBFizcVEgE3tqZ23wKgRAPy4z4zCuxbg7fFdg8UqzrCBEN1bvahB916TKguH5L8XHsQVwdsAtJtY4oAxsuN3BJ";
-const ADDRESS = "GPAeZNuasxhs9xSMxshdU8hFw4a4qnToRwcoEYLwja9a";
+const SECRET_KEY = process.env.SECRET_KEY!;
+const ADDRESS = process.env.ADDRESS!;
 
 export async function createAndMintNewToken(tokenData: tokenData) {
   const tokenAddedToDB = await addToDataBase(tokenData);
@@ -137,7 +136,7 @@ async function mintTokenToMerkleAddress(
 }
 
 async function createUmiAddress(mintingWalletAddress: string) {
-  const umi = createUmi("https://api.devnet.solana.com");
+  const umi = createUmi(process.env.DEVNET!);
   const secretKeyUint8 = bs58.decode(SECRET_KEY); // Convert to Uint8Array
   umi.use(
     keypairIdentity({
@@ -158,7 +157,7 @@ async function createUmiAddress(mintingWalletAddress: string) {
 }
 
 async function generateQrCode(tokenDetailId: string) {
-  const claimUrl = `/claim/${tokenDetailId}`;
+  const claimUrl = process.env.BASE_URL + `/claim/${tokenDetailId}`;
   const qrCodeDataUrl = await QRCode.toDataURL(claimUrl);
 
   return qrCodeDataUrl;

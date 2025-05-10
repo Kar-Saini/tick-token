@@ -18,7 +18,7 @@ export const SolanaWalletProvider = ({
   children: React.ReactNode;
 }) => {
   return (
-    <ConnectionProvider endpoint="https://api.devnet.solana.com">
+    <ConnectionProvider endpoint={process.env.DEVNET!}>
       <WalletProvider wallets={wallets} autoConnect>
         <WalletModalProvider>
           <Toaster />

@@ -8,9 +8,10 @@ import { keypairIdentity } from "@metaplex-foundation/umi";
 import bs58 from "bs58";
 import prisma from "@/app/lib/utils";
 
-const SECRET_KEY =
-  "3oTBFizcVEgE3tqZ23wKgRAPy4z4zCuxbg7fFdg8UqzrCBEN1bvahB916TKguH5L8XHsQVwdsAtJtY4oAxsuN3BJ";
-const ADDRESS = "GPAeZNuasxhs9xSMxshdU8hFw4a4qnToRwcoEYLwja9a";
+const SECRET_KEY = process.env.SECRET_KEY!;
+const ADDRESS = process.env.ADDRESS!;
+console.log(SECRET_KEY);
+
 export async function claimToken(
   userWalletAddress: string,
   tokenDetailsId: string
@@ -44,7 +45,7 @@ export async function claimToken(
     }
 
     const merkleTreeAddress = new PublicKey(tokenDetails.merkleTreeAddress);
-    const umi = createUmi("https://api.devnet.solana.com");
+    const umi = createUmi(process.env.DEVNET!);
     const secretKeyUint8 = bs58.decode(SECRET_KEY); // Convert to Uint8Array
     umi.use(
       keypairIdentity({

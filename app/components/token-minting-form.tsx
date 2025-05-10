@@ -12,10 +12,6 @@ import { Alert, AlertDescription } from "@/app/components/ui/alert";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { createAndMintNewToken } from "../actions/createNewToken";
 import { toast } from "react-hot-toast";
-import { Connection } from "@solana/web3.js";
-
-const SOLANA_NETWORK = "https://api.devnet.solana.com";
-const connection = new Connection(SOLANA_NETWORK);
 
 const INITIAL_TOKEN_DATA = {
   tokenName: "",

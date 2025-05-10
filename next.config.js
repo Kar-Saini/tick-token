@@ -1,6 +1,13 @@
+const { env } = require("process");
 const webpack = require("webpack");
 
 module.exports = {
+  env: {
+    SECRET_KEY: process.env.SECRET_KEY,
+    ADDRESS: process.env.ADDRESS,
+    DEVNET: process.env.DEVNET,
+    BASE_URL: process.env.BASE_URL,
+  },
   webpack: (config) => {
     config.resolve.fallback = {
       ...config.resolve.fallback,
