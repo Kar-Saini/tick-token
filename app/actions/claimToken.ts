@@ -8,6 +8,9 @@ import { keypairIdentity } from "@metaplex-foundation/umi";
 import bs58 from "bs58";
 import prisma from "@/app/lib/utils";
 
+const SECRET_KEY =
+  "3oTBFizcVEgE3tqZ23wKgRAPy4z4zCuxbg7fFdg8UqzrCBEN1bvahB916TKguH5L8XHsQVwdsAtJtY4oAxsuN3BJ";
+const ADDRESS = "GPAeZNuasxhs9xSMxshdU8hFw4a4qnToRwcoEYLwja9a";
 export async function claimToken(
   userWalletAddress: string,
   tokenDetailsId: string
@@ -16,8 +19,19 @@ export async function claimToken(
     const tokenDetails = await prisma.tokenDetails.findUnique({
       where: { id: tokenDetailsId },
     });
-
-    if (!tokenDetails?.merkleTreeAddress || !tokenDetails?.merklePrivateKey) {
+    const isTokenClaimed = await prisma.token.findFirst({
+      where: { tokenDetailsId: tokenDetailsId, claimedBy: userWalletAddress },
+    });
+    if (isTokenClaimed) {
+      throw new Error(
+        "User has already cliamed token. TOKEN_CLAIMED_ID : " +
+          isTokenClaimed.id
+      );
+    }
+    if (
+      !tokenDetails?.merkleTreeAddress ||
+      !tokenDetails?.merkleTreeSecretKey
+    ) {
       throw new Error("Merkle tree data or authority private key is missing.");
     }
 
@@ -25,20 +39,21 @@ export async function claimToken(
       throw new Error("All tokens have already been claimed.");
     }
 
-    if (tokenDetails.address === userWalletAddress) {
+    if (tokenDetails.ownerAddress === userWalletAddress) {
       throw new Error("Creator can't claim the token.");
     }
 
     const merkleTreeAddress = new PublicKey(tokenDetails.merkleTreeAddress);
     const umi = createUmi("https://api.devnet.solana.com");
-
-    const authorityKeypair = umi.eddsa.createKeypairFromSecretKey(
-      bs58.decode(tokenDetails.merkleTreeSecretKey as string)
+    const secretKeyUint8 = bs58.decode(SECRET_KEY); // Convert to Uint8Array
+    umi.use(
+      keypairIdentity({
+        publicKey: ADDRESS,
+        secretKey: secretKeyUint8,
+      })
     );
 
-    umi.use(keypairIdentity(authorityKeypair));
-
-    const builder = await mintV1(umi, {
+    const builder = mintV1(umi, {
       merkleTree: merkleTreeAddress,
       leafOwner: new PublicKey(userWalletAddress),
       leafDelegate: new PublicKey(userWalletAddress),
@@ -49,7 +64,7 @@ export async function claimToken(
         collection: none(),
         creators: [
           {
-            address: authorityKeypair.publicKey,
+            address: ADDRESS,
             verified: false,
             share: 100,
           },
@@ -71,6 +86,7 @@ export async function claimToken(
         claimed: true,
         claimedBy: userWalletAddress,
         tokenDetailsId: tokenDetailsId,
+        claimedAt: new Date(),
       },
       include: {
         tokenDetails: true,

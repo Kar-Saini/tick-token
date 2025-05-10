@@ -41,7 +41,7 @@ const ExisitingTokenCard = ({ token }) => {
       <div className="text-sm text-gray-700">
         <p className="text-xs text-gray-500">Creator Address</p>
         <p className="font-mono truncate">
-          {token.address.slice(0, 20) + "..."}
+          {token.ownerAddress.slice(0, 20) + "..."}
         </p>
       </div>
     </div>

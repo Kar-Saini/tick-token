@@ -1,7 +1,6 @@
 "use client";
 
 import type React from "react";
-
 import { useState } from "react";
 import { Button } from "@/app/components/ui/button";
 import { Input } from "@/app/components/ui/input";
@@ -13,125 +12,85 @@ import { Alert, AlertDescription } from "@/app/components/ui/alert";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { createAndMintNewToken } from "../actions/createNewToken";
 import { toast } from "react-hot-toast";
-import {
-  Connection,
-  Keypair,
-  LAMPORTS_PER_SOL,
-  SystemProgram,
-  Transaction,
-} from "@solana/web3.js";
+import { Connection } from "@solana/web3.js";
+
 const SOLANA_NETWORK = "https://api.devnet.solana.com";
 const connection = new Connection(SOLANA_NETWORK);
 
+const INITIAL_TOKEN_DATA = {
+  tokenName: "",
+  tokenSymbol: "",
+  tokenAmount: 10,
+  ownerAddress: "",
+  mintingWalletAddress: "",
+  eventRegistration: false,
+  eventName: "",
+  eventDate: "",
+  eventDescription: "",
+};
+
 export default function TokenMintingForm() {
-  const [tokenName, setTokenName] = useState("");
-  const [tokenSymbol, setTokenSymbol] = useState("");
-  const [tokenAmount, setTokenAmount] = useState<number>(100);
-  const [eventRegistration, setEventRegistration] = useState(false);
-  const [eventName, setEventName] = useState("");
-  const [eventDate, setEventDate] = useState("");
-  const [eventDescription, setEventDescription] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [tokenData, setTokenData] = useState(INITIAL_TOKEN_DATA);
   const [error, setError] = useState("");
-  const {
-    publicKey: userWalletPublicKey,
-    sendTransaction,
-    wallet,
-  } = useWallet();
-  const [mintingWalletKeypair, setMintingWalletKeypair] =
-    useState<Keypair | null>(null);
-  const [hasSentSol, setHasSentSol] = useState(false);
-  const generateMintingWallet = () => {
-    const newKeypair = Keypair.generate();
-    setMintingWalletKeypair(newKeypair);
-    setError("");
-    setHasSentSol(false);
-    return newKeypair;
+  const [isLoading, setIsLoading] = useState(false);
+  const { publicKey: userWalletPublicKey } = useWallet();
+
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value, type, checked } = e.target;
+    setTokenData((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
+    }));
   };
-  const fundMintingWallet = async (mintingWalletKeypair: Keypair) => {
-    if (!userWalletPublicKey) {
-      toast.error("Please connect your wallet first.");
-      return;
-    }
 
-    if (!mintingWalletKeypair) {
-      toast.error("Please generate a minting address first.");
-      return;
-    }
-
-    try {
-      const transaction = new Transaction().add(
-        SystemProgram.transfer({
-          fromPubkey: userWalletPublicKey,
-          toPubkey: mintingWalletKeypair.publicKey,
-          lamports: 0.1 * LAMPORTS_PER_SOL, // Sends 0.1 SOL
-        })
-      );
-
-      const signature = await sendTransaction(transaction, connection);
-      await connection.confirmTransaction(signature, "processed");
-      setHasSentSol(true);
-      toast.success("Done");
-      setError("");
-    } catch (err: any) {
-      console.error(err);
-      setError("Failed to send SOL. Please try again.");
-      toast.error("Failed to send SOL. Please try again.");
-    }
+  const handleSwitchChange = (checked: boolean) => {
+    setTokenData((prev) => ({ ...prev, eventRegistration: checked }));
   };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
-    if (!tokenName || !tokenSymbol || !tokenAmount) {
+    if (
+      !tokenData.tokenName ||
+      !tokenData.tokenSymbol ||
+      !tokenData.tokenAmount
+    ) {
       setError("Please fill in all required token fields");
-      toast.error(error);
+      toast.error("Please fill in all required token fields");
       return;
     }
 
-    if (eventRegistration && (!eventName || !eventDate)) {
+    if (
+      tokenData.eventRegistration &&
+      (!tokenData.eventName || !tokenData.eventDate)
+    ) {
       setError("Please fill in all event details");
-      toast.error(error);
+      toast.error("Please fill in all event details");
       return;
     }
+
     if (!userWalletPublicKey) {
       toast.error("Connect Wallet");
       return;
     }
 
-    setIsLoading(true);
-    const keypair = await generateMintingWallet();
-    const success = await fundMintingWallet(keypair);
-
     try {
-      if (!hasSentSol) {
-        toast.error("SOL not sent");
-        return;
-      }
+      setIsLoading(true);
       const result = await createAndMintNewToken({
-        tokenName,
-        tokenAmount,
-        tokenSymbol,
-        eventDate,
-        eventDescription,
-        eventName,
-        eventRegistration,
-        ownerAddress: userWalletPublicKey.toBase58().toString(),
-        mintingWalletAddress: keypair?.publicKey.toBase58().toString()!,
+        ...tokenData,
+        tokenAmount: Number(tokenData.tokenAmount),
+        ownerAddress: userWalletPublicKey.toBase58(),
       });
-      console.log(result);
       if (result) toast.success("Token Minted");
-      setTokenName("");
-      setTokenSymbol("");
-      setTokenAmount(0);
-      setEventRegistration(false);
-      setEventName("");
-      setEventDate("");
-      setEventDescription("");
-      setIsLoading(false);
+
+      setTokenData(INITIAL_TOKEN_DATA);
       setError("");
     } catch (err) {
       setError("Failed to mint tokens. Please try again.");
+      toast.error("Failed to mint tokens. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -148,15 +107,15 @@ export default function TokenMintingForm() {
 
       <div className="space-y-4">
         <h3 className="text-lg font-medium">Token Details</h3>
-
         <div className="grid gap-4 md:grid-cols-2">
           <div className="space-y-2">
             <Label htmlFor="tokenName">Token Name *</Label>
             <Input
               id="tokenName"
+              name="tokenName"
               placeholder="Experience Token"
-              value={tokenName}
-              onChange={(e) => setTokenName(e.target.value)}
+              value={tokenData.tokenName}
+              onChange={handleInputChange}
               required
             />
           </div>
@@ -165,9 +124,10 @@ export default function TokenMintingForm() {
             <Label htmlFor="tokenSymbol">Token Symbol *</Label>
             <Input
               id="tokenSymbol"
+              name="tokenSymbol"
               placeholder="cTKN"
-              value={tokenSymbol}
-              onChange={(e) => setTokenSymbol(e.target.value)}
+              value={tokenData.tokenSymbol}
+              onChange={handleInputChange}
               required
               maxLength={5}
             />
@@ -178,11 +138,12 @@ export default function TokenMintingForm() {
           <Label htmlFor="tokenAmount">Amount to Mint *</Label>
           <Input
             id="tokenAmount"
+            name="tokenAmount"
             type="number"
             min={1}
             placeholder="100"
-            value={tokenAmount}
-            onChange={(e) => setTokenAmount(Number.parseInt(e.target.value))}
+            value={tokenData.tokenAmount}
+            onChange={handleInputChange}
             required
           />
         </div>
@@ -199,21 +160,22 @@ export default function TokenMintingForm() {
             </p>
           </div>
           <Switch
-            checked={eventRegistration}
-            onCheckedChange={setEventRegistration}
+            checked={tokenData.eventRegistration}
+            onCheckedChange={handleSwitchChange}
           />
         </div>
 
-        {eventRegistration && (
+        {tokenData.eventRegistration && (
           <div className="grid gap-4 md:grid-cols-2 pt-2">
             <div className="space-y-2">
               <Label htmlFor="eventName">Event Name *</Label>
               <Input
                 id="eventName"
+                name="eventName"
                 placeholder="Blockchain Summit 2023"
-                value={eventName}
-                onChange={(e) => setEventName(e.target.value)}
-                required={eventRegistration}
+                value={tokenData.eventName}
+                onChange={handleInputChange}
+                required={tokenData.eventRegistration}
               />
             </div>
 
@@ -221,25 +183,29 @@ export default function TokenMintingForm() {
               <Label htmlFor="eventDescription">Event Description *</Label>
               <Input
                 id="eventDescription"
+                name="eventDescription"
                 type="text"
-                value={eventDescription}
-                onChange={(e) => setEventDescription(e.target.value)}
-                required={eventRegistration}
+                value={tokenData.eventDescription}
+                onChange={handleInputChange}
+                required={tokenData.eventRegistration}
               />
             </div>
+
             <div className="space-y-2">
               <Label htmlFor="eventDate">Event Date *</Label>
               <Input
                 id="eventDate"
+                name="eventDate"
                 type="date"
-                value={eventDate}
-                onChange={(e) => setEventDate(e.target.value)}
-                required={eventRegistration}
+                value={tokenData.eventDate}
+                onChange={handleInputChange}
+                required={tokenData.eventRegistration}
               />
             </div>
           </div>
         )}
       </div>
+
       <Separator />
 
       <div className="space-y-2">
@@ -252,11 +218,10 @@ export default function TokenMintingForm() {
               className="mt-1"
             />
             <span className="text-sm text-gray-600">
-              I understand that I will be required to create a new Solana public
-              key to pay network fees for minting and claiming tokens. I must
-              fund this address with at least <strong>0.1 SOL</strong>. The
-              private key of this address will be mine and will be used to
-              authorize these transactions.
+              I understand that the tokens will be minted by the platform first.
+              To allow user's to claim these tokens, I must fund the platform's
+              Solana wallet <strong>once the tokens</strong> to cover the
+              network fees for the claiming transaction.
             </span>
           </div>
         </Label>

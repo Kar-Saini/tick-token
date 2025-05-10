@@ -18,7 +18,7 @@ model TokenDetails {
   tokenName           String
   tokenSymbol         String
   ownerAddress             String
-  mintingWalletAddress String
+  mintingWalletAddress String?
   totalSupply         Int
   totalClaimedToken   Int      @default(0)
   tokens              Token[]

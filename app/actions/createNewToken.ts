@@ -11,12 +11,17 @@ import bs58 from "bs58";
 import { none } from "@metaplex-foundation/umi";
 import QRCode from "qrcode";
 
+const SECRET_KEY =
+  "3oTBFizcVEgE3tqZ23wKgRAPy4z4zCuxbg7fFdg8UqzrCBEN1bvahB916TKguH5L8XHsQVwdsAtJtY4oAxsuN3BJ";
+const ADDRESS = "GPAeZNuasxhs9xSMxshdU8hFw4a4qnToRwcoEYLwja9a";
+
 export async function createAndMintNewToken(tokenData: tokenData) {
   const tokenAddedToDB = await addToDataBase(tokenData);
-  const { umi, merkleTree } = await createUmiAddress(
-    tokenData.mintingWalletAddress
-  );
-  await prisma.tokenDetails.update({
+  console.log("tokenAddedToDB");
+  console.log(tokenAddedToDB);
+  const { umi, merkleTree } = await createUmiAddress(ADDRESS);
+
+  const updatedTokenDetails = await prisma.tokenDetails.update({
     where: { id: tokenAddedToDB.id },
     data: {
       merkleTreeAddress: merkleTree.publicKey.toString(),
@@ -24,22 +29,26 @@ export async function createAndMintNewToken(tokenData: tokenData) {
     },
   });
 
+  console.log("updatedTokenDetails");
+  console.log(updatedTokenDetails);
+
   const mintedTokens = await mintTokenToMerkleAddress(
     tokenData.tokenAmount,
     merkleTree.publicKey.toString(),
-    tokenData.mintingWalletAddress,
+    tokenData.ownerAddress!,
     tokenData.tokenName,
     umi
   );
   console.log("Minted token txs:", mintedTokens);
 
-  // Step 5: Update the database to mark the token as minted
   await prisma.tokenDetails.update({
     where: { id: tokenAddedToDB.id },
     data: { minted: true },
   });
 
   const qrForToken = await generateQrCode(tokenAddedToDB.id);
+  console.log("qrForToken");
+  console.log(qrForToken);
   await prisma.tokenDetails.update({
     where: { id: tokenAddedToDB.id },
     data: { qrString: qrForToken },
@@ -56,7 +65,7 @@ async function addToDataBase(tokenData: tokenData) {
       totalSupply: tokenData.tokenAmount,
       totalClaimedToken: 0,
       ownerAddress: tokenData.ownerAddress,
-      mintingWalletAddress: tokenData.mintingWalletAddress,
+      mintingWalletAddress: ADDRESS,
     };
 
     const eventData: any = {};
@@ -92,7 +101,9 @@ async function mintTokenToMerkleAddress(
   umi: any
 ) {
   const mintResults: any[] = [];
-
+  console.log("ownerAddress:", ownerAddress);
+  console.log("merkleAddress:", merkleAddress);
+  console.log("umi.identity.publicKey:", umi.identity.publicKey);
   try {
     for (let i = 0; i < amount; i++) {
       const mintBuilder = mintV1(umi, {
@@ -127,11 +138,13 @@ async function mintTokenToMerkleAddress(
 
 async function createUmiAddress(mintingWalletAddress: string) {
   const umi = createUmi("https://api.devnet.solana.com");
-
-  // Use the minting wallet's public key as the identity instead of a private key
-  const mintingWalletPublicKey = new PublicKey(mintingWalletAddress);
-  umi.use(keypairIdentity({ publicKey: mintingWalletPublicKey }));
-
+  const secretKeyUint8 = bs58.decode(SECRET_KEY); // Convert to Uint8Array
+  umi.use(
+    keypairIdentity({
+      publicKey: mintingWalletAddress,
+      secretKey: secretKeyUint8,
+    })
+  );
   const merkleTree = generateSigner(umi);
   const builder = await createTree(umi, {
     merkleTree,
@@ -145,7 +158,8 @@ async function createUmiAddress(mintingWalletAddress: string) {
 }
 
 async function generateQrCode(tokenDetailId: string) {
-  const claimUrl = `/claim?tokenId=${tokenDetailId}`;
+  const claimUrl = `/claim/${tokenDetailId}`;
   const qrCodeDataUrl = await QRCode.toDataURL(claimUrl);
+
   return qrCodeDataUrl;
 }
