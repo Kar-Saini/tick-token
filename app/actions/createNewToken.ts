@@ -4,7 +4,11 @@ import prisma from "@/app/lib/utils";
 import { tokenData } from "@/app/lib/types";
 import { mintV1 } from "@metaplex-foundation/mpl-bubblegum";
 import { createTree } from "@metaplex-foundation/mpl-bubblegum";
-import { generateSigner, keypairIdentity } from "@metaplex-foundation/umi";
+import {
+  generateSigner,
+  keypairIdentity,
+  publicKey,
+} from "@metaplex-foundation/umi";
 import { createUmi } from "@metaplex-foundation/umi-bundle-defaults";
 import { PublicKey } from "@solana/web3.js";
 import bs58 from "bs58";
@@ -106,8 +110,8 @@ async function mintTokenToMerkleAddress(
   try {
     for (let i = 0; i < amount; i++) {
       const mintBuilder = mintV1(umi, {
-        leafOwner: new PublicKey(ownerAddress),
-        merkleTree: new PublicKey(merkleAddress),
+        leafOwner: publicKey(ownerAddress),
+        merkleTree: publicKey(merkleAddress),
         metadata: {
           name: `${name} #${i + 1}`,
           uri: "https://example.com/my-cnft.json",
@@ -140,7 +144,7 @@ async function createUmiAddress(mintingWalletAddress: string) {
   const secretKeyUint8 = bs58.decode(SECRET_KEY); // Convert to Uint8Array
   umi.use(
     keypairIdentity({
-      publicKey: mintingWalletAddress,
+      publicKey: publicKey(mintingWalletAddress),
       secretKey: secretKeyUint8,
     })
   );

@@ -3,7 +3,7 @@
 import { createUmi } from "@metaplex-foundation/umi-bundle-defaults";
 import { mintV1 } from "@metaplex-foundation/mpl-bubblegum";
 import { PublicKey } from "@solana/web3.js";
-import { none } from "@metaplex-foundation/umi";
+import { none, publicKey } from "@metaplex-foundation/umi";
 import { keypairIdentity } from "@metaplex-foundation/umi";
 import bs58 from "bs58";
 import prisma from "@/app/lib/utils";
@@ -49,15 +49,15 @@ export async function claimToken(
     const secretKeyUint8 = bs58.decode(SECRET_KEY); // Convert to Uint8Array
     umi.use(
       keypairIdentity({
-        publicKey: ADDRESS,
+        publicKey: publicKey(ADDRESS),
         secretKey: secretKeyUint8,
       })
     );
 
     const builder = mintV1(umi, {
-      merkleTree: merkleTreeAddress,
-      leafOwner: new PublicKey(userWalletAddress),
-      leafDelegate: new PublicKey(userWalletAddress),
+      merkleTree: publicKey(merkleTreeAddress),
+      leafOwner: publicKey(userWalletAddress),
+      leafDelegate: publicKey(userWalletAddress),
       metadata: {
         name: tokenDetails.tokenName,
         uri: "https://example.com/my-cnft.json", // Ideally make this dynamic
@@ -65,7 +65,7 @@ export async function claimToken(
         collection: none(),
         creators: [
           {
-            address: ADDRESS,
+            address: publicKey(ADDRESS),
             verified: false,
             share: 100,
           },
