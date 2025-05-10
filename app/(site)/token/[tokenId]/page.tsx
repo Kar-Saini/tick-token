@@ -119,7 +119,7 @@ const page = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {token.tokens.map((claimedToken) => (
+                  {token.tokens.map((claimedToken: any) => (
                     <tr key={claimedToken.id}>
                       <td className="px-4 py-2 border">
                         {claimedToken.id.slice(0, 8) + "..."}
