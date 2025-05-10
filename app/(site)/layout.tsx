@@ -4,8 +4,8 @@ import ClientOnly from "../components/ClientOnly";
 import WalletButtonFunction from "../components/WalletButtonFunction";
 import { Metadata } from "next";
 export const metadata: Metadata = {
-  title: "TickToken",
-  description: "TickToken",
+  title: "TokenXperience",
+  description: "TokenXperience",
 };
 const SiteLayout = ({
   children,

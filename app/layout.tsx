@@ -4,8 +4,8 @@ import React from "react";
 import Appbar from "./components/Appbar";
 
 export const metadata: Metadata = {
-  title: "TickToken",
-  description: "TickToken",
+  title: "TokenXperience",
+  description: "TokenXperience",
 };
 
 export default function RootLayout({

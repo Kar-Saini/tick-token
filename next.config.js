@@ -7,6 +7,7 @@ module.exports = {
     ADDRESS: process.env.ADDRESS,
     DEVNET: process.env.DEVNET,
     BASE_URL: process.env.BASE_URL,
+    DATABASE_URL: process.env.DATABASE_URL,
   },
   webpack: (config) => {
     config.resolve.fallback = {
