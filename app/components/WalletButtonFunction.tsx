@@ -7,7 +7,7 @@ import "@solana/wallet-adapter-react-ui/styles.css";
 
 function WalletButtonFunction() {
   return (
-    <div className="flex gap-2">
+    <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-end">
       <WalletMultiButton />
       <WalletDisconnectButton />
     </div>
