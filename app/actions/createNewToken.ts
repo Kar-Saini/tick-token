@@ -14,7 +14,9 @@ import { PublicKey } from "@solana/web3.js";
 import bs58 from "bs58";
 import { none } from "@metaplex-foundation/umi";
 import QRCode from "qrcode";
-
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 const SECRET_KEY = process.env.SECRET_KEY!;
 const ADDRESS = process.env.ADDRESS!;
 
@@ -128,6 +130,7 @@ async function mintTokenToMerkleAddress(
       });
 
       const txSignature = await mintBuilder.sendAndConfirm(umi);
+      await sleep(2000);
       console.log(txSignature);
       mintResults.push(txSignature);
     }

@@ -13,6 +13,7 @@ import {
   Shield,
   Sparkles,
   Wallet,
+  PenLine,
 } from "lucide-react";
 
 import { claimToken } from "@/app/actions/claimToken";
@@ -28,15 +29,21 @@ import {
 } from "@/app/components/ui/card";
 import { Skeleton } from "@/app/components/ui/skeleton";
 import { Badge } from "@/app/components/ui/badge";
+import { Input } from "@/app/components/ui/input";
+import { Label } from "@/app/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/app/components/ui/radio-group";
 
 const Claim = () => {
   const router = useRouter();
   const { tokenId } = useParams();
-  const { publicKey } = useWallet();
+  const { publicKey, connected } = useWallet();
 
   const [tokenDetail, setTokenDetail] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [addressOption, setAddressOption] = useState("connected");
+  const [manualAddress, setManualAddress] = useState("");
+  const [addressError, setAddressError] = useState("");
 
   useEffect(() => {
     fetchTokenDetail();
@@ -55,15 +62,40 @@ const Claim = () => {
     }
   };
 
+  const validateSolanaAddress = (address: string) => {
+    // Basic validation - Solana addresses are 44 characters long
+    // This is a simple check, you might want to use a more robust validation
+    return address.length === 44 || address.length === 43;
+  };
+
   const handleClaim = async () => {
-    if (!publicKey) {
-      toast.error("Please connect your wallet.");
-      return;
+    let walletAddress = "";
+
+    if (addressOption === "connected") {
+      if (!publicKey) {
+        toast.error("Please connect your wallet.");
+        return;
+      }
+      walletAddress = publicKey.toString();
+    } else {
+      // Validate manual address
+      if (!manualAddress.trim()) {
+        setAddressError("Please enter a wallet address");
+        return;
+      }
+
+      if (!validateSolanaAddress(manualAddress.trim())) {
+        setAddressError("Please enter a valid Solana wallet address");
+        return;
+      }
+
+      walletAddress = manualAddress.trim();
+      setAddressError("");
     }
 
     setLoading(true);
     try {
-      const result = await claimToken(publicKey.toString(), tokenId as string);
+      const result = await claimToken(walletAddress, tokenId as string);
       if (result) {
         toast.success(`Token claimed successfully! ID: ${result}`);
       }
@@ -117,7 +149,7 @@ const Claim = () => {
                 Claim Your Token
               </CardTitle>
               <CardDescription>
-                Connect your wallet to claim this exclusive digital collectible
+                Choose how you want to claim this exclusive digital collectible
               </CardDescription>
             </CardHeader>
 
@@ -159,14 +191,83 @@ const Claim = () => {
                     Created By
                   </p>
                   <p className="font-medium truncate">
-                    {tokenDetail?.ownerAddress || "TokenXperience"}
+                    {tokenDetail?.ownerAddress?.slice(0, 10) + "..." ||
+                      "TokenXperience"}
                   </p>
                 </div>
                 <div className="bg-blue-50 p-3 rounded-lg border border-blue-100">
                   <p className="text-xs text-muted-foreground mb-1">Token ID</p>
                   <p className="font-medium truncate">
-                    {tokenDetail?.id || "Experience"}
+                    {tokenDetail?.id?.slice(0, 8) + "..." || "Experience"}
                   </p>
+                </div>
+              </div>
+
+              {/* Wallet Address Selection */}
+              <div className="w-full mb-6 space-y-4">
+                <div className="bg-white p-4 rounded-lg border border-gray-100 shadow-sm">
+                  <RadioGroup
+                    value={addressOption}
+                    onValueChange={setAddressOption}
+                    className="space-y-3"
+                  >
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="connected" id="connected" />
+                      <Label
+                        htmlFor="connected"
+                        className="flex items-center cursor-pointer"
+                      >
+                        <Wallet className="h-4 w-4 mr-2 text-purple-600" />
+                        <span>Use Connected Wallet</span>
+                        {!connected && (
+                          <Badge className="ml-2 bg-amber-100 text-amber-800 hover:bg-amber-100">
+                            Not Connected
+                          </Badge>
+                        )}
+                      </Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="manual" id="manual" />
+                      <Label
+                        htmlFor="manual"
+                        className="flex items-center cursor-pointer"
+                      >
+                        <PenLine className="h-4 w-4 mr-2 text-blue-600" />
+                        <span>Enter Wallet Address</span>
+                      </Label>
+                    </div>
+                  </RadioGroup>
+
+                  {addressOption === "manual" && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      transition={{ duration: 0.3 }}
+                      className="mt-3"
+                    >
+                      <Label
+                        htmlFor="walletAddress"
+                        className="text-sm font-medium mb-1.5 block"
+                      >
+                        Solana Wallet Address
+                      </Label>
+                      <Input
+                        id="walletAddress"
+                        placeholder="Enter your Solana wallet address"
+                        value={manualAddress}
+                        onChange={(e) => {
+                          setManualAddress(e.target.value);
+                          if (addressError) setAddressError("");
+                        }}
+                        className={addressError ? "border-red-300" : ""}
+                      />
+                      {addressError && (
+                        <p className="text-red-500 text-xs mt-1">
+                          {addressError}
+                        </p>
+                      )}
+                    </motion.div>
+                  )}
                 </div>
               </div>
             </CardContent>

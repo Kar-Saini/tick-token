@@ -25,10 +25,10 @@ model TokenDetails {
   merkleTreeAddress    String?
   merkleTreeSecretKey  String?
   qrString             String?
-  lamportsPaid              Int @default(0)
+  lamportsPaid         Int      @default(0)
   amountPaidForMinting Boolean  @default(false)
   minted               Boolean  @default(false)
-  allClaimed            Boolean  @default(false)
+  allClaimed           Boolean  @default(false)
   createdAt            DateTime @default(now())
   event                Event?   @relation("EventToTokenDetails")
 }

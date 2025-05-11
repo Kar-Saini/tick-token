@@ -2,5 +2,5 @@
 import prisma from "@/app/lib/utils";
 
 export async function getAllTokenDetail() {
-  return await prisma.tokenDetails.findMany();
+  return await prisma.tokenDetails.findMany({ orderBy: { createdAt: "desc" } });
 }

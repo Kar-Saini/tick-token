@@ -53,7 +53,6 @@ const TokenDetailsPage = () => {
   const [activeTab, setActiveTab] = useState("details");
   const { publicKey, signTransaction } = useWallet();
   console.log(publicKey);
-
   const handlePay = async () => {
     if (!publicKey || !signTransaction) {
       toast.error("Wallet not connected");
@@ -94,6 +93,7 @@ const TokenDetailsPage = () => {
       const res = await markTokenAsPaid(token.id, total);
       if (res) {
         toast.success("Token updated in DB");
+        setIsPendingPayment(false);
       }
     } catch (error) {
       console.error("Transaction Error", error);
@@ -113,7 +113,6 @@ const TokenDetailsPage = () => {
       if (!tokenDetail) router.push("/");
     } catch (error) {
       console.error("Failed to fetch token details:", error);
-      router.push("/");
     } finally {
       setIsLoading(false);
     }
@@ -146,7 +145,9 @@ const TokenDetailsPage = () => {
   };
 
   const isAllClaimed = token?.totalClaimedToken === token?.totalSupply;
-  const isPendingPayment = token?.amountPaidForMinting === false;
+  const [isPendingPayment, setIsPendingPayment] = useState<boolean>(
+    token?.amountPaidForMinting === false
+  );
 
   if (isLoading) {
     return (

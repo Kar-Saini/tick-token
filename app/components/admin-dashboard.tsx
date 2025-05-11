@@ -60,7 +60,7 @@ export default function TokenManagementDashboard() {
           className="flex items-center gap-2 py-1.5 bg-amber-50 text-amber-700 border-amber-200"
         >
           <Wallet className="h-6 w-6" />
-          <span className="text-lg">Solana Network</span>
+          <span className="text-lg">Solana Developer Network</span>
         </Badge>
       </div>
 
