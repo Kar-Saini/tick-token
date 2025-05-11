@@ -3,6 +3,7 @@ import { useRouter } from "next/navigation";
 import React from "react";
 
 const ExisitingTokenCard = ({ token }: { token: any }) => {
+  console.log(token);
   const navigate = useRouter();
   return (
     <div

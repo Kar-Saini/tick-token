@@ -14,20 +14,23 @@ datasource db {
 }
 
 model TokenDetails {
-  id                  String   @id @unique @default(cuid())
-  tokenName           String
-  tokenSymbol         String
-  ownerAddress             String
+  id                   String   @id @unique @default(cuid())
+  tokenName            String
+  tokenSymbol          String
+  ownerAddress         String
   mintingWalletAddress String?
-  totalSupply         Int
-  totalClaimedToken   Int      @default(0)
-  tokens              Token[]
-  merkleTreeAddress   String?
-  merkleTreeSecretKey String?
-  qrString            String?
-  minted              Boolean  @default(false)
-  createdAt           DateTime @default(now())
-  event               Event?   @relation("EventToTokenDetails")
+  totalSupply          Int
+  totalClaimedToken    Int      @default(0)
+  tokens               Token[]
+  merkleTreeAddress    String?
+  merkleTreeSecretKey  String?
+  qrString             String?
+  lamportsPaid              Int @default(0)
+  amountPaidForMinting Boolean  @default(false)
+  minted               Boolean  @default(false)
+  allClaimed            Boolean  @default(false)
+  createdAt            DateTime @default(now())
+  event                Event?   @relation("EventToTokenDetails")
 }
 
 model Token {

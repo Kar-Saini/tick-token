@@ -222,10 +222,11 @@ export default function TokenMintingForm() {
               className="mt-1"
             />
             <span className="text-sm text-gray-600">
-              I understand that the tokens will be minted by the platform first.
-              To allow user's to claim these tokens, I must fund the platform's
-              Solana wallet <strong>once the tokens</strong> to cover the
-              network fees for the claiming transaction.
+              I understand that the tokens will be minted by the platform
+              address first. To allow user's to claim these tokens, I must fund
+              the platform's Solana wallet{" "}
+              <strong>once the tokens are minted</strong> to cover the network
+              fees for miniting and claiming transactions.
             </span>
           </div>
         </Label>

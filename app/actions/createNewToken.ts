@@ -46,7 +46,7 @@ export async function createAndMintNewToken(tokenData: tokenData) {
 
   await prisma.tokenDetails.update({
     where: { id: tokenAddedToDB.id },
-    data: { minted: true },
+    data: { minted: true, createdAt: new Date() },
   });
 
   const qrForToken = await generateQrCode(tokenAddedToDB.id);
