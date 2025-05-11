@@ -89,12 +89,12 @@ export default function TokenMintingForm() {
         ownerAddress: userWalletPublicKey.toBase58(),
       });
       if (result) toast.success("Token Minted");
-
       setTokenData(INITIAL_TOKEN_DATA);
       setError("");
     } catch (err) {
       setError("Failed to mint tokens. Please try again.");
       toast.error("Failed to mint tokens. Please try again.");
+      console.log(err);
     } finally {
       setIsLoading(false);
     }
